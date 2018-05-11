@@ -1,7 +1,8 @@
 <template>
     <div
-            class="border-grey-lighter border-2 w-10 h-10 text-white text-2xl flex justify-center flex-col flex items-center"
+            class="border-red-lighter border-2 w-1/6 h-auto text-white text-5xl flex justify-center flex-col items-center"
             :class="[revealed ? revealedClass : unrevealedClass]"
+            :style="dimensionStyles"
     >
         <p v-html="labelHtml"></p>
     </div>
@@ -21,18 +22,23 @@
                 default: false,
             },
             label: {
-                type: Number,
+                type: [String, Number],
                 default: null,
             },
             marked: {
                 type: Boolean,
                 default: true,
+            },
+            id: {
+                type: Number
             }
         },
 
         computed: {
             labelHtml() {
                 if (this.marked) return "<i class=\"fas fa-exclamation-triangle\"></i>"
+
+                if (this.isBomb) return "<i class=\"fas fa-bomb\"></i>"
 
                 return this.label
             }
@@ -42,6 +48,11 @@
             return {
                 unrevealedClass: "bg-grey-dark",
                 revealedClass: "bg-grey-light",
+
+                dimensionStyles: {
+                    width: '12.5vw',
+                    height: '12.5vh'
+                },
             }
         },
     }

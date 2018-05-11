@@ -1,17 +1,17 @@
 <template>
   <div id="app">
-    <Cell />
+    <Game />
   </div>
 </template>
 
 <script>
 import './assets/styles/main.css'
-import Cell from './components/Cell.vue'
+import Game from './components/Game'
 
 export default {
   name: 'app',
   components: {
-    Cell
+    Game
   }
 }
 </script>
