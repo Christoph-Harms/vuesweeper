@@ -1,10 +1,9 @@
 <template>
     <div
-            class="border-red-lighter border-2 w-1/6 h-auto text-white text-5xl flex justify-center flex-col items-center"
-            :class="[revealed ? revealedClass : unrevealedClass]"
-            :style="dimensionStyles"
+            class="border-red-lighter border-2 overflow-hidden flex items-center justify-center"
+            :class="[revealed ? revealedClass : unrevealedClass, textClass]"
     >
-        <p v-html="labelHtml"></p>
+        <p v-html="labelHtml" class="block"></p>
     </div>
 </template>
 
@@ -23,7 +22,7 @@
             },
             label: {
                 type: [String, Number],
-                default: null,
+                default: "&nbsp;",
             },
             marked: {
                 type: Boolean,
@@ -38,9 +37,22 @@
             labelHtml() {
                 if (this.marked) return "<i class=\"fas fa-exclamation-triangle\"></i>"
 
-                if (this.isBomb) return "<i class=\"fas fa-bomb\"></i>"
+                if (this.isBomb && this.revealed) return "<i class=\"fas fa-bomb\"></i>"
 
                 return this.label
+            },
+
+            textClass() {
+                switch (this.label) {
+                    case 1: return "text-blue-light"
+                    case 2: return "text-green"
+                    case 3: return "text-red"
+                    case 4: return "text-blue-dark"
+                    case 5: return "text-brown"
+                    case 6: return "text-indigo"
+                    case 7: return "text-purple"
+                    case 8: return "text-pink"
+                }
             }
         },
 
@@ -48,11 +60,6 @@
             return {
                 unrevealedClass: "bg-grey-dark",
                 revealedClass: "bg-grey-light",
-
-                dimensionStyles: {
-                    width: '12.5vw',
-                    height: '12.5vh'
-                },
             }
         },
     }

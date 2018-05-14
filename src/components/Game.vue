@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-wrap">
+    <div class="flex flex-wrap w-full h-full content-start">
         <Cell
                 v-for="(cell, index) in cells"
                 :revealed="cell.revealed"
@@ -9,6 +9,8 @@
                 :id="cell.id"
                 :key="index"
                 @click.native="revealCell(cell.id)"
+                @click.right.native.prevent="toggleMark(cell.id)"
+                :style="cellStyle"
         />
     </div>
 </template>
@@ -22,9 +24,27 @@
         },
 
         props: {
-            boardSize: {
+            gameSize: {
+                type: String,
+                default: 'S'
+            },
+            restartRequest: {
                 type: Number,
-                default: 8
+                default: 0
+            },
+            debugShowBombs: {
+                type: Boolean,
+                default: false
+            }
+        },
+
+        watch: {
+            restartRequest: function() {
+                this.restart()
+            },
+
+            debugShowBombs: function (val) {
+                this.cells.filter(cell => cell.isBomb).forEach(cell => cell.revealed = val)
             }
         },
 
@@ -33,13 +53,26 @@
                 return this.cells.every((cell) => {
                     return cell.isBomb || cell.revealed
                 })
+            },
+
+            cellStyle() {
+                return this.boardSizes[this.gameSize].cellStyle
+            },
+
+            boardSize() {
+                return this.boardSizes[this.gameSize].value
             }
         },
 
         data() {
             return {
                 cells: [],
-                won: false
+                won: false,
+                boardSizes: {
+                    'S': {value: 8, cellStyle: "width: 12.5%; height: 12.5%; font-size: 300%"},
+                    'M': {value: 12, cellStyle: "width: 8.3333%; height: 8.3333%; font-size: 200%"},
+                    'L': {value: 16, cellStyle: "width: 6.25%; height: 6.25%;"},
+                }
             }
         },
 
@@ -49,8 +82,8 @@
                 console.log("revealing cell with index " + index)
 
                 if (this.cells[index].isBomb) {
-                    this.loose()
-                    return
+                    console.log("Welp. That was a bomb.")
+                    return this.loose()
                 }
 
                 let neighbourIndexes = this.getNeighbourIndexes(index)
@@ -75,7 +108,13 @@
                     this.cells[index].label = numBombs
                 }
 
-                if (this.gameWon) this.win()
+                if (this.gameWon) {
+                    return this.win()
+                }
+            },
+
+            toggleMark(index) {
+                this.cells[index].marked = ! this.cells[index].marked
             },
 
             revealAll() {
@@ -117,35 +156,43 @@
 
             loose() {
                 this.revealAll()
-                alert("BOOM! The mine explodes, ripping you apart. You lost. :(")
+                this.$nextTick(function() {
+                    alert("BOOM! The mine explodes, ripping you apart. You lost. :(")
+                })
             },
 
             win() {
                 if (!this.won) {
                     this.won = true
                     this.revealAll()
+                    this.$nextTick()
                     alert("Yes! You won!")
+                    return true
                 }
+            },
+
+            restart() {
+                let cells = []
+
+                let bS = this.boardSize
+
+                // noinspection JSCheckFunctionSignatures
+                for (let i = 0; i < Math.pow(bS, 2); i++) {
+                    cells[i] = {
+                        id: i,
+                        revealed: false,
+                        isBomb: Math.floor((Math.random() * 6) + 1) === 1,
+                        label: "&nbsp;",
+                        marked: false,
+                    }
+                }
+
+                this.cells = cells
             }
         },
 
         created() {
-            let cells = []
-
-            let bS = this.boardSize
-
-            // noinspection JSCheckFunctionSignatures
-            for (let i = 0; i < Math.pow(bS, 2); i++) {
-                cells[i] = {
-                    id: i,
-                    revealed: false,
-                    isBomb: Math.floor((Math.random() * 6) + 1) === 1,
-                    label: "i" + i,
-                    marked: false,
-                }
-            }
-
-            this.cells = cells
+            this.restart()
         }
     }
 </script>
