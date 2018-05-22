@@ -17,6 +17,7 @@
 
 <script>
     import Cell from './Cell'
+    import swal from "sweetalert"
     export default {
         name: "Game",
         components: {
@@ -56,11 +57,11 @@
             },
 
             cellStyle() {
-                return this.boardSizes[this.gameSize].cellStyle
+                return this.boardSizes[this.currentGameSize].cellStyle
             },
 
             boardSize() {
-                return this.boardSizes[this.gameSize].value
+                return this.boardSizes[this.currentGameSize].value
             }
         },
 
@@ -72,12 +73,16 @@
                     'S': {value: 8, cellStyle: "width: 12.5%; height: 12.5%; font-size: 300%"},
                     'M': {value: 12, cellStyle: "width: 8.3333%; height: 8.3333%; font-size: 200%"},
                     'L': {value: 16, cellStyle: "width: 6.25%; height: 6.25%;"},
-                }
+                },
+                currentGameSize: null,
+                gameStarted: false
             }
         },
 
         methods: {
             revealCell(index) {
+                if (! this.gameStarted) this.startGame()
+
                 if (this.cells[index].revealed) return
                 console.log("revealing cell with index " + index)
 
@@ -118,7 +123,18 @@
             },
 
             revealAll() {
-                this.cells.forEach(cell => cell.revealed = true)
+                this.cells.forEach((cell) => {
+                    let numNeighbourBombs = this.getNeighbourIndexes(cell.id).reduce((carry, item) => {
+                        if (this.cells[item].isBomb) {
+                            carry += 1
+                        }
+                        return carry
+                    }, 0)
+                    if (numNeighbourBombs > 0 && !cell.isBomb) {
+                        cell.label = numNeighbourBombs
+                    }
+                    cell.revealed = true
+                })
             },
 
             getNeighbourIndexes(index) {
@@ -155,23 +171,26 @@
             },
 
             loose() {
+                this.stopGame()
                 this.revealAll()
-                this.$nextTick(function() {
-                    alert("BOOM! The mine explodes, ripping you apart. You lost. :(")
-                })
+                this.$nextTick(() => swal("BOOM!", "The bomb explodes, ripping you apart. You lost. :(", "error"))
             },
 
             win() {
                 if (!this.won) {
                     this.won = true
+                    this.stopGame()
                     this.revealAll()
-                    this.$nextTick()
-                    alert("Yes! You won!")
-                    return true
+                    this.$nextTick(() => swal("You won!", "Try again, maybe it's a lucky streak?", "success"))
                 }
             },
 
             restart() {
+                this.stopGame()
+                this.won = false
+
+                this.currentGameSize = this.gameSize
+
                 let cells = []
 
                 let bS = this.boardSize
@@ -188,7 +207,17 @@
                 }
 
                 this.cells = cells
-            }
+            },
+
+            startGame() {
+                this.gameStarted = true
+                this.$emit('gameStarted')
+            },
+
+            stopGame() {
+                this.gameStarted = false
+                this.$emit('gameStopped')
+            },
         },
 
         created() {

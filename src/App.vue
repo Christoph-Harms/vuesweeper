@@ -6,19 +6,27 @@
                         class="bg-blue hover:bg-blue-dark text-white font-bold py-2 px-4 rounded"
                         @click="restart()"
                 >
-                    Restart
+                    New Game
                 </button>
-                <select v-model="gameSize">
-                    <option disabled value="">Select game size</option>
-                    <option v-for="option in gameSizeOptions" :value="option.value" :key="option.value">
-                        {{ option.text }}
-                    </option>
-                </select>
+                <div class="flex flex-col justify-center items-end">
+                    <label for="gamesize" class="mb-1">Select game size:</label>
+                    <select v-model="gameSize" id="gamesize">
+                        <option disabled value="">Select game size</option>
+                        <option v-for="option in gameSizeOptions" :value="option.value" :key="option.value">
+                            {{ option.text }}
+                        </option>
+                    </select>
+                </div>
             </div>
+            <Dashboard
+                    :timer-running="timerRunning"
+            ></Dashboard>
             <Game
                     :restart-request="restartCounter"
                     :game-size="gameSize"
                     :debug-show-bombs="debugShowBombs"
+                    @gameStarted="startTimer"
+                    @gameStopped="stopTimer"
             />
             <input type="checkbox" id="checkbox" v-model="debugShowBombs">
             <label for="checkbox">(Debug) Show bombs</label>
@@ -29,11 +37,13 @@
 <script>
     import './assets/styles/main.css'
     import Game from './components/Game'
+    import Dashboard from './components/Dashboard'
 
     export default {
         name: 'app',
         components: {
-            Game
+            Game,
+            Dashboard
         },
 
         data() {
@@ -45,13 +55,22 @@
                     {text: 'M (12x12)', value: 'M'},
                     {text: 'L (16x16)', value: 'L'},
                 ],
-                debugShowBombs: false
+                debugShowBombs: false,
+                timerRunning: false,
             }
         },
 
         methods: {
             restart() {
                 this.restartCounter++
+            },
+
+            startTimer() {
+                this.timerRunning = true
+            },
+
+            stopTimer() {
+                this.timerRunning = false
             }
         }
     }
